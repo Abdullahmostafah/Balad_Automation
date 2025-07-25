@@ -7,14 +7,21 @@ import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import org.openqa.selenium.By;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.time.Duration;
 
 public class LoginSteps extends TestBase {
     private LoginPage loginPage;
     private AdminPage adminPage;
+    private final WebDriverWait wait;
 
     public LoginSteps() {
         loginPage = new LoginPage();
         adminPage = new AdminPage();
+        wait = new WebDriverWait(driver, Duration.ofSeconds(10));
     }
 
     @Given("I am on the login page")
@@ -25,15 +32,15 @@ public class LoginSteps extends TestBase {
     }
 
     @When("I log in with username {string} and password {string}")
-    public void i_log_in(String username, String password) throws InterruptedException {
+    public void i_log_in(String username, String password) {
         loginPage.performLogin(username, password);
-        Thread.sleep(2000); // Wait for login to complete
+        wait.until(ExpectedConditions.visibilityOfElementLocated(
+                By.className("oxd-main-menu")));
     }
 
     @And("I navigate to the Admin tab")
-    public void i_navigate_to_the_admin_tab() throws InterruptedException {
+    public void i_navigate_to_the_admin_tab() {
         adminPage.clickAdminButton();
-        Thread.sleep(2000); // Wait for admin page to load
     }
 
     @Then("I note the initial record count")

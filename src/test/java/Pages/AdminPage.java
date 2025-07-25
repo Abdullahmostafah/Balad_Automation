@@ -2,6 +2,7 @@ package Pages;
 
 import Base.TestBase;
 import Utils.ConfigReaderWriter;
+import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
@@ -12,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -78,7 +80,9 @@ public class AdminPage extends TestBase {
     }
 
     public void clickAdminButton() {
+        wait.until(ExpectedConditions.elementToBeClickable(adminButton));
         adminButton.click();
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("orangehrm-horizontal-padding")));
     }
 
     public String getRecordsCountText() {
@@ -93,20 +97,32 @@ public class AdminPage extends TestBase {
     }
 
     public void selectRoles() {
+        wait.until(ExpectedConditions.elementToBeClickable(roles));
         roles.click();
         roles.sendKeys(Keys.DOWN);
         roles.sendKeys(Keys.ENTER);
+        wait.until(ExpectedConditions.elementToBeClickable(dropDownRoles));
         dropDownRoles.click();
     }
 
     public void selectStatus() {
+        wait.until(ExpectedConditions.elementToBeClickable(status));
         status.click();
+        wait.until(ExpectedConditions.elementToBeClickable(selectStatus));
         selectStatus.click();
     }
 
     public void searchEmployeeHint(String characterToSearch) throws InterruptedException {
+        wait.until(ExpectedConditions.elementToBeClickable(employeeNameField));
+        employeeNameField.click();
+        employeeNameField.clear();
         employeeNameField.sendKeys(characterToSearch);
         Thread.sleep(1500);
+        List<WebElement> suggestions = driver.findElements(By.xpath("//div[@class='oxd-autocomplete-option']"));
+        if (suggestions.isEmpty()) {
+            logger.error("No autocomplete suggestions found for input: {}", characterToSearch);
+            throw new RuntimeException("No suggestions found for employee hint: " + characterToSearch);
+        }
         employeeNameField.sendKeys(Keys.DOWN);
         employeeNameField.sendKeys(Keys.ENTER);
     }
@@ -136,17 +152,19 @@ public class AdminPage extends TestBase {
     }
 
     public void clickDeleteButton() {
-        wait.until(ExpectedConditions.elementToBeClickable(deleteBtn)).click();
+        deleteBtn.click();
     }
 
     public void clickConfirmDeletionButton() {
-        wait.until(ExpectedConditions.elementToBeClickable(confirmDeletionBtn)).click();
+        wait.until(ExpectedConditions.elementToBeClickable(confirmDeletionBtn));
+        confirmDeletionBtn.click();
         wait.until(ExpectedConditions.invisibilityOf(confirmDeletionBtn));
     }
 
     public void clickResetButton() {
         logger.info("Clicking reset button");
-        wait.until(ExpectedConditions.elementToBeClickable(resetButton)).click();
+        wait.until(ExpectedConditions.elementToBeClickable(resetButton));
+        resetButton.click();
     }
 
     public void setInitialCount(String textToExtract) {
@@ -170,9 +188,7 @@ public class AdminPage extends TestBase {
         return currentCount;
     }
 
-    public Integer getInitialCount() {
-        return initialCount;
-    }
+
 
     private Integer extractNumber(String textToExtract) {
         if (textToExtract == null || textToExtract.trim().isEmpty()) {

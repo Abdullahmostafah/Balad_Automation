@@ -1,4 +1,4 @@
- package StepDefinitions;
+package StepDefinitions;
 
 import Base.TestBase;
 import Pages.AdminPage;
@@ -22,15 +22,13 @@ public class AdminPanelSteps extends TestBase {
     @When("I add a new user with username {string} and password {string}")
     public void i_add_a_new_user(String employeeUsername, String employeePassword) throws InterruptedException {
         adminPage.clickAddButton();
-        adminPage.searchEmployeeHint(" ");
+        adminPage.searchEmployeeHint("a");
         adminPage.enterUsername(employeeUsername);
         adminPage.enterPassword(employeePassword);
         adminPage.enterConfirmPassword(employeePassword);
         adminPage.selectStatus();
         adminPage.selectRoles();
-        Thread.sleep(1000);
         adminPage.clickSaveButton();
-        Thread.sleep(2000); // Wait for page to load after saving
     }
 
     @Then("the record count should increase by 1")
@@ -48,26 +46,21 @@ public class AdminPanelSteps extends TestBase {
     }
 
     @When("I search for {string}")
-    public void i_search_for_user(String employeeUsername) throws InterruptedException {
+    public void i_search_for_user(String employeeUsername) {
         logger.info("Searching for username: {}", employeeUsername);
-        Thread.sleep(1000);
         adminPage.enterSearchName(employeeUsername);
         adminPage.clickSearchButton();
-        Thread.sleep(2000); // Wait for search results
     }
 
     @And("I delete the user")
-    public void i_delete_the_user() throws InterruptedException {
+    public void i_delete_the_user() {
         adminPage.clickDeleteButton();
         adminPage.clickConfirmDeletionButton();
-        Thread.sleep(3000); // Wait for deletion to complete
     }
 
     @And("I reset the search results")
-    public void i_reset_the_search_results() throws InterruptedException {
-       Thread.sleep(3000);
+    public void i_reset_the_search_results() {
         adminPage.clickResetButton();
-        Thread.sleep(2000); // Wait for page to refresh
     }
 
     @Then("the record count should decrease by 1")
