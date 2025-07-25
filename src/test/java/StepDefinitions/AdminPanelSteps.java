@@ -1,69 +1,94 @@
-package StepDefinitions;
+ package StepDefinitions;
 
+import Base.TestBase;
 import Pages.AdminPage;
-import TestBases.TestBase;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import org.openqa.selenium.By;
-import org.openqa.selenium.Keys;
-
-import java.util.Optional;
+import Utils.ConfigReaderWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AdminPanelSteps extends TestBase {
-    AdminPage adminPage;
-    Integer recordsAfterCreation;
-    Integer expectedCountAfterCreation;
-    Integer recordsAfterDeletion;
-    Integer expectedCountAfterDeletion;
+
+    private static final Logger logger = LoggerFactory.getLogger(AdminPanelSteps.class);
+    private AdminPage adminPage;
+    private Integer recordsAfterCreation;
+
+    public AdminPanelSteps() {
+        adminPage = new AdminPage();
+    }
 
     @When("I add a new user with username {string} and password {string}")
     public void i_add_a_new_user(String employeeUsername, String employeePassword) throws InterruptedException {
-        adminPage = new AdminPage();
-        adminPage.addButton.click();
-        adminPage.searchEmployeeHint("a");
-        adminPage.usernameField .sendKeys(employeeUsername);
-        adminPage.PWField.sendKeys(employeePassword);
-        adminPage.confirmPWField.sendKeys(employeePassword);
-        adminPage.status.click();
-        adminPage.selectStatus.click();
-        adminPage.roles.click();
-        adminPage.roles.sendKeys(Keys.DOWN);
-        adminPage.roles.sendKeys(Keys.ENTER);
+        adminPage.clickAddButton();
+        adminPage.searchEmployeeHint(" ");
+        adminPage.enterUsername(employeeUsername);
+        adminPage.enterPassword(employeePassword);
+        adminPage.enterConfirmPassword(employeePassword);
+        adminPage.selectStatus();
+        adminPage.selectRoles();
         Thread.sleep(1000);
-        adminPage.dropDownRoles.click();
-        adminPage.saveBtn.click();
+        adminPage.clickSaveButton();
+        Thread.sleep(2000); // Wait for page to load after saving
     }
 
     @Then("the record count should increase by 1")
-    public void the_record_count_should_increase_by_1(){
-        String recordsAfterCreationText = adminPage.recordsCountTextField.getText();
-        recordsAfterCreation = adminPage.getRecordsCount(recordsAfterCreationText);
-        expectedCountAfterCreation = adminPage.initialCount ;
-        softAssert.assertEquals(recordsAfterCreation, expectedCountAfterCreation, "username is not added");
+    public void the_record_count_should_increase_by_1() {
+        String recordsAfterCreationText = adminPage.getRecordsCountText();
+        recordsAfterCreation = adminPage.getCurrentCount(recordsAfterCreationText);
+        Integer initialCount = Integer.valueOf(ConfigReaderWriter.getDynamicValue("initialCount"));
+        logger.info("Initial count: {}", initialCount);
+        logger.info("Count after creation: {}", recordsAfterCreation);
+        Integer expectedCountAfterCreation = initialCount + 1;
+        softAssert.assertEquals(recordsAfterCreation, expectedCountAfterCreation,
+                "Record count did not increase by 1. Expected: " + expectedCountAfterCreation +
+                        ", Actual: " + recordsAfterCreation);
         softAssert.assertAll();
     }
 
     @When("I search for {string}")
     public void i_search_for_user(String employeeUsername) throws InterruptedException {
+        logger.info("Searching for username: {}", employeeUsername);
         Thread.sleep(1000);
-        adminPage.searchName.sendKeys(employeeUsername);
-        adminPage.searchBtn.click();
+        adminPage.enterSearchName(employeeUsername);
+        adminPage.clickSearchButton();
+        Thread.sleep(2000); // Wait for search results
     }
 
     @And("I delete the user")
-    public void i_delete_the_user(){
-        adminPage.deleteBtn.click();
-        adminPage.confirmDeletionBtn.click();
+    public void i_delete_the_user() throws InterruptedException {
+        adminPage.clickDeleteButton();
+        adminPage.clickConfirmDeletionButton();
+        Thread.sleep(3000); // Wait for deletion to complete
+    }
+
+    @And("I reset the search results")
+    public void i_reset_the_search_results() throws InterruptedException {
+       Thread.sleep(3000);
+        adminPage.clickResetButton();
+        Thread.sleep(2000); // Wait for page to refresh
     }
 
     @Then("the record count should decrease by 1")
-    public void the_record_count_should_decrease_by_1() throws InterruptedException {
-        String recordsAfterDeletionText = adminPage.recordsCountTextField.getText();
-        recordsAfterDeletion = adminPage.getRecordsCount(recordsAfterDeletionText);
-        expectedCountAfterDeletion = expectedCountAfterCreation;
-        softAssert.assertEquals(recordsAfterCreation, expectedCountAfterCreation, "No Records found");
+    public void the_record_count_should_decrease_by_1() {
+        String recordsAfterDeletionText = adminPage.getRecordsCountText();
+        Integer recordsAfterDeletion = adminPage.getCurrentCount(recordsAfterDeletionText);
+        Integer initialCount = Integer.valueOf(ConfigReaderWriter.getDynamicValue("initialCount"));
+        logger.info("Initial count: {}", initialCount);
+        logger.info("Count after deletion: {}", recordsAfterDeletion);
+        Integer expectedCountAfterDeletion = initialCount;
+        if (recordsAfterCreation == null || recordsAfterCreation != initialCount + 1) {
+            logger.error("User addition not verified. Records after creation: {}", recordsAfterCreation);
+            softAssert.fail("User addition not verified before deletion. Records after creation: " + recordsAfterCreation);
+        } else if (recordsAfterDeletion == null) {
+            logger.error("Failed to retrieve record count after deletion. Text: {}", recordsAfterDeletionText);
+            softAssert.fail("Record count is null after deletion. Text: " + recordsAfterDeletionText);
+        } else {
+            softAssert.assertEquals(recordsAfterDeletion, expectedCountAfterDeletion,
+                    "Record count did not return to initial value. Expected: " + expectedCountAfterDeletion +
+                            ", Actual: " + recordsAfterDeletion);
+        }
         softAssert.assertAll();
     }
 }
-

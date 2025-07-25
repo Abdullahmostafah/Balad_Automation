@@ -1,30 +1,38 @@
 package StepDefinitions;
 
-import TestBases.TestBase;
+import Base.TestBase;
+import Utils.ConfigReaderWriter;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Hooks extends TestBase {
+    private static final Logger logger = LoggerFactory.getLogger(Hooks.class);
+    String browser = ConfigReaderWriter.getPropKey("browser");
 
     @Before
     public void launchBrowser() {
 
-        switch (properties.getProperty("browser")) {
-            case "chrome" -> {
+        logger.info("Launching browser: {}", browser);
+        switch (browser.toLowerCase()) {
+            case "chrome":
                 configureChromeBrowser();
-            }
-            case "firefox" -> {
+                break;
+            case "firefox":
                 configureFireFoxBrowser();
-            }
-            default -> throw new IllegalArgumentException("Browser not supported: " + properties.getProperty("browser"));
+                break;
+            default:
+                logger.error("Browser not supported: {}", browser);
+                throw new IllegalArgumentException("Browser not supported: " + browser);
         }
     }
 
     @After
-    public void TearDown() throws InterruptedException {
-        Thread.sleep(2000);
+    public void tearDown() {
+        logger.info("Tearing down browser");
         if (driver != null) {
             driver.quit();
-        }}
-
+        }
+    }
 }

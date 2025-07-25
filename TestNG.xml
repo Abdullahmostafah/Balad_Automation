@@ -1,0 +1,9 @@
+<!-- This is the TestNG XML configuration file for running tests in the OrangeHRM project -->
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Test Suite">
+    <test name="OrangeHRM Test Suite">
+        <classes>
+            <class name="Runners.TestRunner"/>
+        </classes>
+    </test>
+</suite>
